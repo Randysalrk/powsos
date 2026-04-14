@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace pow {
-    
-    
-    public partial class Site_Mobile {
-        
+namespace pow
+{
+
+
+    public partial class Site_Mobile
+    {
+
         /// <summary>
         /// HeadContent control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace pow {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.ContentPlaceHolder HeadContent;
-        
+
         /// <summary>
         /// form1 control.
         /// </summary>
@@ -29,7 +31,16 @@ namespace pow {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
-        
+
+        /// <summary>
+        /// FeaturedContentWrapper control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.PlaceHolder FeaturedContentWrapper;
+
         /// <summary>
         /// FeaturedContent control.
         /// </summary>
@@ -38,7 +49,7 @@ namespace pow {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.ContentPlaceHolder FeaturedContent;
-        
+
         /// <summary>
         /// MainContent control.
         /// </summary>

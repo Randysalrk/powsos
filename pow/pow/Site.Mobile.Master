@@ -4,20 +4,392 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <meta name="viewport" content="width=device-width" />
-    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PawSoS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
     <asp:ContentPlaceHolder runat="server" ID="HeadContent" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f3f3f3;
+            color: #222;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .mobile-shell {
+            min-height: 100vh;
+            background: #f3f3f3;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            position: sticky;
+            top: 0;
+            z-index: 1100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-btn {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 10px;
+            background: #fff4df;
+            color: #d99000;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: #f4a300;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(244,163,0,0.35);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: #777;
+        }
+
+        .topbar-right {
+            font-size: 22px;
+            color: #666;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            z-index: 1190;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 260px;
+            height: 100vh;
+            background: #ffffff;
+            z-index: 1200;
+            transition: left 0.28s ease;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar.show {
+            left: 0;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, #f4a300, #ffbf3f);
+            color: white;
+            padding: 22px 18px;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-brand-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        .sidebar-brand-text h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .sidebar-brand-text p {
+            margin: 3px 0 0 0;
+            font-size: 12px;
+            opacity: 0.95;
+        }
+
+        .side-nav {
+            padding: 14px 10px 24px 10px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            padding: 10px 12px 8px 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .nav-link-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 14px;
+            border-radius: 14px;
+            margin: 6px 4px;
+            color: #333;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link-item i {
+            font-size: 18px;
+            color: #d99000;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        .nav-link-item:hover {
+            background: #fff6e7;
+            color: #111;
+        }
+
+        .nav-link-item.active {
+            background: #fff2d6;
+            color: #111;
+            font-weight: 700;
+        }
+
+        .nav-link-item.active i {
+            color: #c98200;
+        }
+
+        .page-container {
+            width: 100%;
+            min-height: calc(100vh - 64px);
+        }
+
+        .featured-content {
+            padding: 14px 14px 0 14px;
+        }
+
+        .main-content {
+            padding: 14px;
+        }
+
+        .content-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+
+        .bottom-switcher {
+            padding: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                left: 0;
+            }
+
+            .sidebar-overlay {
+                display: none;
+            }
+
+            .topbar {
+                padding-left: 280px;
+            }
+
+            .page-container {
+                padding-left: 260px;
+            }
+
+            .menu-btn {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
     <form id="form1" runat="server">
-    <div>
-        <h1>Mobile Master Page</h1>
-        <asp:ContentPlaceHolder runat="server" ID="FeaturedContent" />
-        <section class="content-wrapper main-content clear-fix">
-            <asp:ContentPlaceHolder runat="server" ID="MainContent" />
-        </section>
-        <friendlyUrls:ViewSwitcher runat="server" />
-    </div>
+        <div class="mobile-shell">
+
+            <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+            <aside id="mobileSidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-brand">
+                        <div class="sidebar-brand-logo">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                        <div class="sidebar-brand-text">
+                            <h2>PawSoS</h2>
+                            <p>Animal Care & Rescue</p>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="side-nav">
+                    <div class="nav-section-title">Main Menu</div>
+
+                    <a href="dashboard.aspx" class="nav-link-item active">
+                        <i class="bi bi-house-door-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+
+                    <a href="Default.aspx" class="nav-link-item">
+                        <i class="bi bi-grid-fill"></i>
+                        <span>Home</span>
+                    </a>
+
+                    <a href="About.aspx" class="nav-link-item">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>About</span>
+                    </a>
+
+                    <a href="Contact.aspx" class="nav-link-item">
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>Contact</span>
+                    </a>
+
+                    <a href="#" class="nav-link-item">
+                        <i class="bi bi-heart-fill"></i>
+                        <span>Pets</span>
+                    </a>
+
+                    <a href="#" class="nav-link-item">
+                        <i class="bi bi-shield-fill-check"></i>
+                        <span>Rescue</span>
+                    </a>
+
+                    <a href="#" class="nav-link-item">
+                        <i class="bi bi-bag-heart-fill"></i>
+                        <span>Adoption</span>
+                    </a>
+
+                    <a href="#" class="nav-link-item">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button type="button" class="menu-btn" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+
+                    <div class="brand-wrap">
+                        <div class="brand-logo">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                        <div class="brand-text">
+                            <span class="brand-title">PawSoS</span>
+                            <span class="brand-subtitle">Care for every paw</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+            </header>
+
+            <main class="page-container">
+                <asp:PlaceHolder runat="server" ID="FeaturedContentWrapper">
+                    <div class="featured-content">
+                        <asp:ContentPlaceHolder runat="server" ID="FeaturedContent" />
+                    </div>
+                </asp:PlaceHolder>
+
+                <section class="main-content">
+                    <asp:ContentPlaceHolder runat="server" ID="MainContent" />
+                </section>
+
+                <div class="bottom-switcher">
+                    <friendlyUrls:ViewSwitcher runat="server" />
+                </div>
+            </main>
+        </div>
     </form>
+
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById('mobileSidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        function closeSidebar() {
+            var sidebar = document.getElementById('mobileSidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+    </script>
 </body>
 </html>
