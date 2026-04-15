@@ -157,24 +157,27 @@
 
                 <h1 class="login-title">Login</h1>
 
-                <asp:TextBox ID="txtEmail" runat="server" CssClass="input-box" TextMode="Email" placeholder="Email address"></asp:TextBox>
+                <asp:TextBox ID="txtEmail" runat="server" CssClass="input-box"
+                    placeholder="Username or Email"></asp:TextBox>
 
-                <asp:TextBox ID="txtPassword" runat="server" CssClass="input-box" TextMode="Password" placeholder="Password"></asp:TextBox>
+                <asp:TextBox ID="txtPassword" runat="server" CssClass="input-box"
+                    TextMode="Password" placeholder="Password"></asp:TextBox>
 
                 <div class="forgot-wrap">
                     <a href="#" class="forgot-link">Forgot password?</a>
                 </div>
 
-                <asp:Button ID="btnLogin" runat="server" Text="Login" CssClass="login-btn" />
+                <asp:Button ID="btnLogin" runat="server" Text="Login"
+                    CssClass="login-btn" OnClick="btnLogin_Click" />
 
                 <div class="register-text-top">
                     Are you still not a member?
                 </div>
 
                 <div class="register-line">
-                    <a href="#" class="basic-link">Basic user</a>
+                    <a href="SignUp.aspx" class="basic-link">Basic user</a>
                     or
-                    <a href="#" class="basic-link">Organization</a>
+                    <a href="SignUp.aspx" class="basic-link">Organization</a>
                 </div>
 
                 <div class="register-line-2">
