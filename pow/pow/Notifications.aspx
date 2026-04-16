@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Mobile.Master" AutoEventWireup="true" CodeBehind="Notifications.aspx.cs" Inherits="pow.Notifications" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="HeadContent" runat="server">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         .notify-page {
@@ -101,6 +101,13 @@
             margin-top: 16px;
             border: 1px solid #ccc;
             background: #f8f8f8;
+        }
+
+        .route-status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
         }
 
         .distance-box {
@@ -216,16 +223,41 @@
 
             <div id="map"></div>
 
+            <div id="routeStatus" class="route-status">Loading road route...</div>
+
             <div class="distance-box">
                 Distance: <asp:Label ID="lblDistance" runat="server"></asp:Label>
             </div>
         </asp:Panel>
     </div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         var notifyMap = null;
+        var routeLayer = null;
+        var markerLayer = null;
+
+        function getLabelElement() {
+            return document.getElementById('<%= lblDistance.ClientID %>');
+        }
+
+        function getRouteStatusElement() {
+            return document.getElementById('routeStatus');
+        }
+
+        function clearMap() {
+            if (notifyMap !== null) {
+                notifyMap.remove();
+                notifyMap = null;
+            }
+            routeLayer = null;
+            markerLayer = null;
+        }
+
+        function formatKm(km) {
+            return km.toFixed(2) + ' km';
+        }
 
         function loadNotificationMap() {
             var orgLatField = document.getElementById('<%= hfOrgLat.ClientID %>');
@@ -251,36 +283,124 @@
                 return;
             }
 
-            if (notifyMap !== null) {
-                notifyMap.remove();
-                notifyMap = null;
-            }
+            clearMap();
 
-            notifyMap = L.map('map');
+            notifyMap = L.map('map', {
+                zoomControl: true
+            });
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(notifyMap);
 
             var orgPoint = [orgLat, orgLng];
             var alertPoint = [alertLat, alertLng];
 
-            var orgMarker = L.marker(orgPoint).addTo(notifyMap)
+            markerLayer = L.layerGroup().addTo(notifyMap);
+
+            L.marker(orgPoint)
+                .addTo(markerLayer)
                 .bindPopup('Organization Location');
 
-            var alertMarker = L.marker(alertPoint).addTo(notifyMap)
+            L.marker(alertPoint)
+                .addTo(markerLayer)
                 .bindPopup('Raised Alert Location');
 
-            var line = L.polyline([orgPoint, alertPoint], {
-                color: 'blue',
-                weight: 4
-            }).addTo(notifyMap);
+            notifyMap.setView(orgPoint, 11);
 
-            notifyMap.fitBounds(line.getBounds(), { padding: [20, 20] });
+            loadRoadRoute(orgLat, orgLng, alertLat, alertLng);
+        }
 
-            setTimeout(function () {
-                notifyMap.invalidateSize();
-            }, 200);
+        function loadRoadRoute(orgLat, orgLng, alertLat, alertLng) {
+            var routeStatus = getRouteStatusElement();
+            var distanceLabel = getLabelElement();
+
+            if (routeStatus) {
+                routeStatus.innerHTML = 'Loading road route...';
+            }
+
+            // OSRM expects longitude,latitude order in URL
+            var url = 'https://router.project-osrm.org/route/v1/driving/'
+                + orgLng + ',' + orgLat + ';' + alertLng + ',' + alertLat
+                + '?overview=full&geometries=geojson&steps=false';
+
+            fetch(url)
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Routing service HTTP error: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (!data || !data.routes || data.routes.length === 0) {
+                        throw new Error('No route found.');
+                    }
+
+                    var route = data.routes[0];
+                    var coords = route.geometry.coordinates;
+
+                    var latLngs = coords.map(function (c) {
+                        return [c[1], c[0]];
+                    });
+
+                    if (routeLayer) {
+                        notifyMap.removeLayer(routeLayer);
+                    }
+
+                    routeLayer = L.polyline(latLngs, {
+                        color: '#1565c0',
+                        weight: 5,
+                        opacity: 0.85
+                    }).addTo(notifyMap);
+
+                    notifyMap.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
+
+                    var roadDistanceKm = route.distance / 1000.0;
+                    var durationMinutes = route.duration / 60.0;
+
+                    if (distanceLabel) {
+                        distanceLabel.innerHTML = formatKm(roadDistanceKm) + ' (road distance)';
+                    }
+
+                    if (routeStatus) {
+                        routeStatus.innerHTML = 'Estimated route distance loaded. Approx. travel time: ' + Math.round(durationMinutes) + ' min';
+                    }
+
+                    setTimeout(function () {
+                        if (notifyMap) {
+                            notifyMap.invalidateSize();
+                        }
+                    }, 200);
+                })
+                .catch(function () {
+                    // fallback: direct line if route service fails
+                    var orgPoint = [orgLat, orgLng];
+                    var alertPoint = [alertLat, alertLng];
+
+                    if (routeLayer) {
+                        notifyMap.removeLayer(routeLayer);
+                    }
+
+                    routeLayer = L.polyline([orgPoint, alertPoint], {
+                        color: 'red',
+                        weight: 4,
+                        dashArray: '8,8',
+                        opacity: 0.8
+                    }).addTo(notifyMap);
+
+                    notifyMap.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
+
+                    if (routeStatus) {
+                        routeStatus.innerHTML = 'Road route could not be loaded. Showing fallback straight line.';
+                    }
+
+                    setTimeout(function () {
+                        if (notifyMap) {
+                            notifyMap.invalidateSize();
+                        }
+                    }, 200);
+                });
         }
     </script>
 </asp:Content>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Web.UI;
 
 namespace pow
@@ -102,7 +103,11 @@ namespace pow
                             a.Latitude AS AlertLatitude,
                             a.Longitude AS AlertLongitude,
                             raised.Username AS RaisedUsername,
-                            ISNULL(raised.FirstName,'') + ' ' + ISNULL(raised.LastName,'') AS RaisedFullName
+                            ISNULL(raised.FirstName,'') + 
+                            CASE 
+                                WHEN ISNULL(raised.LastName,'') = '' THEN ''
+                                ELSE ' ' + ISNULL(raised.LastName,'')
+                            END AS RaisedFullName
                         FROM AlertNotifications n
                         INNER JOIN Alerts a ON n.AlertId = a.AlertId
                         INNER JOIN Users org ON n.OrganizationUserId = org.UserId
@@ -131,10 +136,18 @@ namespace pow
                                 decimal alertLat = dr["AlertLatitude"] != DBNull.Value ? Convert.ToDecimal(dr["AlertLatitude"]) : 0;
                                 decimal alertLng = dr["AlertLongitude"] != DBNull.Value ? Convert.ToDecimal(dr["AlertLongitude"]) : 0;
 
+                                if (orgLat == 0 || orgLng == 0 || alertLat == 0 || alertLng == 0)
+                                {
+                                    pnlDetails.Visible = false;
+                                    ShowMessage("Invalid organization or alert coordinates.");
+                                    return;
+                                }
+
                                 lblOrganizationName.Text = orgName;
+
                                 lblOrganizationLocation.Text = string.IsNullOrWhiteSpace(orgLocation)
                                     ? orgLat.ToString("0.000000") + ", " + orgLng.ToString("0.000000")
-                                    : orgLocation;
+                                    : orgLocation + " (" + orgLat.ToString("0.000000") + ", " + orgLng.ToString("0.000000") + ")";
 
                                 if (string.IsNullOrWhiteSpace(raisedBy))
                                 {
@@ -145,20 +158,20 @@ namespace pow
                                 lblAlertLocation.Text = alertLat.ToString("0.000000") + ", " + alertLng.ToString("0.000000");
                                 lblSentTime.Text = Convert.ToDateTime(dr["SentAt"]).ToString("yyyy-MM-dd hh:mm tt");
 
-                                hfOrgLat.Value = orgLat.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                hfOrgLng.Value = orgLng.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                hfAlertLat.Value = alertLat.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                                hfAlertLng.Value = alertLng.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                hfOrgLat.Value = orgLat.ToString(CultureInfo.InvariantCulture);
+                                hfOrgLng.Value = orgLng.ToString(CultureInfo.InvariantCulture);
+                                hfAlertLat.Value = alertLat.ToString(CultureInfo.InvariantCulture);
+                                hfAlertLng.Value = alertLng.ToString(CultureInfo.InvariantCulture);
 
-                                double distance = GetDistanceKm(
+                                // Fallback straight-line distance shown first; JS will replace with road distance.
+                                double fallbackDistance = GetDistanceKm(
                                     Convert.ToDouble(orgLat),
                                     Convert.ToDouble(orgLng),
                                     Convert.ToDouble(alertLat),
                                     Convert.ToDouble(alertLng)
                                 );
 
-                                lblDistance.Text = distance.ToString("0.00") + " km";
-
+                                lblDistance.Text = fallbackDistance.ToString("0.00") + " km (air distance)";
                                 pnlDetails.Visible = true;
                             }
                             else
