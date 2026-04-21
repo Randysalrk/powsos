@@ -15,15 +15,6 @@ namespace pow
     {
 
         /// <summary>
-        /// pnlEmpty control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlEmpty;
-
-        /// <summary>
         /// rptNotifications control.
         /// </summary>
         /// <remarks>
@@ -33,31 +24,49 @@ namespace pow
         protected global::System.Web.UI.WebControls.Repeater rptNotifications;
 
         /// <summary>
-        /// pnlDetails control.
+        /// pnlEmpty control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlDetails;
+        protected global::System.Web.UI.WebControls.Panel pnlEmpty;
 
         /// <summary>
-        /// lblOrganizationName control.
+        /// pnlModal control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblOrganizationName;
+        protected global::System.Web.UI.WebControls.Panel pnlModal;
 
         /// <summary>
-        /// lblOrganizationLocation control.
+        /// hfNotificationId control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblOrganizationLocation;
+        protected global::System.Web.UI.WebControls.HiddenField hfNotificationId;
+
+        /// <summary>
+        /// hfAlertId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfAlertId;
+
+        /// <summary>
+        /// lblAlertId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblAlertId;
 
         /// <summary>
         /// lblRaisedBy control.
@@ -69,13 +78,49 @@ namespace pow
         protected global::System.Web.UI.WebControls.Label lblRaisedBy;
 
         /// <summary>
-        /// lblAlertLocation control.
+        /// lblDescription control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblAlertLocation;
+        protected global::System.Web.UI.WebControls.Label lblDescription;
+
+        /// <summary>
+        /// lblAnimalType control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblAnimalType;
+
+        /// <summary>
+        /// lblLocationText control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblLocationText;
+
+        /// <summary>
+        /// lblLatitude control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblLatitude;
+
+        /// <summary>
+        /// lblLongitude control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblLongitude;
 
         /// <summary>
         /// lblSentTime control.
@@ -87,48 +132,30 @@ namespace pow
         protected global::System.Web.UI.WebControls.Label lblSentTime;
 
         /// <summary>
-        /// hfOrgLat control.
+        /// btnAccept control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfOrgLat;
+        protected global::System.Web.UI.WebControls.Button btnAccept;
 
         /// <summary>
-        /// hfOrgLng control.
+        /// btnReject control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfOrgLng;
+        protected global::System.Web.UI.WebControls.Button btnReject;
 
         /// <summary>
-        /// hfAlertLat control.
+        /// btnClose control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfAlertLat;
-
-        /// <summary>
-        /// hfAlertLng control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfAlertLng;
-
-        /// <summary>
-        /// lblDistance control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblDistance;
+        protected global::System.Web.UI.WebControls.Button btnClose;
     }
 }

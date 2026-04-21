@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace pow
 {
@@ -20,7 +20,7 @@ namespace pow
 
             if (!IsPostBack)
             {
-                pnlDetails.Visible = false;
+                pnlModal.Visible = false;
                 LoadNotifications();
             }
         }
@@ -37,17 +37,20 @@ namespace pow
                         SELECT 
                             n.NotificationId,
                             n.AlertId,
+                            n.OrganizationUserId,
                             n.IsSeen,
                             n.SentAt,
+                            ISNULL(n.NotificationStatus, 'Pending') AS NotificationStatus,
                             LTRIM(RTRIM(ISNULL(u.FirstName,''))) +
                             CASE 
                                 WHEN ISNULL(u.LastName,'') = '' THEN ''
-                                ELSE ' ' + LTRIM(RTRIM(ISNULL(u.LastName,'')))
+                                ELSE ' ' + LTRIM(RTRIM(ISNULL(u.LastName,''))
                             END AS RaisedByName
                         FROM AlertNotifications n
                         INNER JOIN Alerts a ON n.AlertId = a.AlertId
                         INNER JOIN Users u ON a.UserId = u.UserId
                         WHERE n.OrganizationUserId = @OrganizationUserId
+                          AND ISNULL(n.NotificationStatus, 'Pending') IN ('Pending', 'Accepted', 'Successful', 'Unsuccessful')
                         ORDER BY n.SentAt DESC";
 
                     using (SqlCommand cmd = new SqlCommand(query, con))
@@ -69,13 +72,13 @@ namespace pow
             }
             catch (Exception ex)
             {
-                ShowMessage("Error loading notifications: " + ex.Message.Replace("'", ""));
+                Response.Write("<script>alert('Error loading notifications: " + ex.Message.Replace("'", "") + "');</script>");
             }
         }
 
-        protected void rptNotifications_ItemCommand(object source, System.Web.UI.WebControls.RepeaterCommandEventArgs e)
+        protected void rptNotifications_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            if (e.CommandName == "ViewNotification")
+            if (e.CommandName == "ViewDetails")
             {
                 int notificationId = Convert.ToInt32(e.CommandArgument);
                 LoadNotificationDetails(notificationId);
@@ -95,23 +98,20 @@ namespace pow
                             n.NotificationId,
                             n.AlertId,
                             n.SentAt,
-                            org.UserId AS OrgUserId,
-                            org.Username AS OrgUsername,
-                            org.LocationText AS OrgLocationText,
-                            org.Latitude AS OrgLatitude,
-                            org.Longitude AS OrgLongitude,
-                            a.Latitude AS AlertLatitude,
-                            a.Longitude AS AlertLongitude,
-                            raised.Username AS RaisedUsername,
-                            ISNULL(raised.FirstName,'') + 
+                            ISNULL(n.NotificationStatus, 'Pending') AS NotificationStatus,
+                            a.Description,
+                            a.AnimalType,
+                            a.LocationText,
+                            a.Latitude,
+                            a.Longitude,
+                            LTRIM(RTRIM(ISNULL(u.FirstName,''))) +
                             CASE 
-                                WHEN ISNULL(raised.LastName,'') = '' THEN ''
-                                ELSE ' ' + ISNULL(raised.LastName,'')
-                            END AS RaisedFullName
+                                WHEN ISNULL(u.LastName,'') = '' THEN ''
+                                ELSE ' ' + LTRIM(RTRIM(ISNULL(u.LastName,''))
+                            END AS RaisedByName
                         FROM AlertNotifications n
                         INNER JOIN Alerts a ON n.AlertId = a.AlertId
-                        INNER JOIN Users org ON n.OrganizationUserId = org.UserId
-                        INNER JOIN Users raised ON a.UserId = raised.UserId
+                        INNER JOIN Users u ON a.UserId = u.UserId
                         WHERE n.NotificationId = @NotificationId
                           AND n.OrganizationUserId = @OrganizationUserId";
 
@@ -121,130 +121,153 @@ namespace pow
                         cmd.Parameters.AddWithValue("@OrganizationUserId", orgUserId);
 
                         con.Open();
+                        SqlDataReader dr = cmd.ExecuteReader();
 
-                        using (SqlDataReader dr = cmd.ExecuteReader())
+                        if (dr.Read())
                         {
-                            if (dr.Read())
-                            {
-                                string orgName = dr["OrgUsername"] != DBNull.Value ? dr["OrgUsername"].ToString() : "";
-                                string orgLocation = dr["OrgLocationText"] != DBNull.Value ? dr["OrgLocationText"].ToString() : "";
-                                string raisedBy = dr["RaisedFullName"] != DBNull.Value ? dr["RaisedFullName"].ToString().Trim() : "";
-                                string raisedUsername = dr["RaisedUsername"] != DBNull.Value ? dr["RaisedUsername"].ToString() : "";
+                            hfNotificationId.Value = dr["NotificationId"].ToString();
+                            hfAlertId.Value = dr["AlertId"].ToString();
 
-                                decimal orgLat = dr["OrgLatitude"] != DBNull.Value ? Convert.ToDecimal(dr["OrgLatitude"]) : 0;
-                                decimal orgLng = dr["OrgLongitude"] != DBNull.Value ? Convert.ToDecimal(dr["OrgLongitude"]) : 0;
-                                decimal alertLat = dr["AlertLatitude"] != DBNull.Value ? Convert.ToDecimal(dr["AlertLatitude"]) : 0;
-                                decimal alertLng = dr["AlertLongitude"] != DBNull.Value ? Convert.ToDecimal(dr["AlertLongitude"]) : 0;
+                            lblAlertId.Text = dr["AlertId"].ToString();
+                            lblRaisedBy.Text = dr["RaisedByName"].ToString();
+                            lblDescription.Text = dr["Description"] == DBNull.Value ? "-" : dr["Description"].ToString();
+                            lblAnimalType.Text = dr["AnimalType"] == DBNull.Value ? "-" : dr["AnimalType"].ToString();
+                            lblLocationText.Text = dr["LocationText"] == DBNull.Value ? "-" : dr["LocationText"].ToString();
+                            lblLatitude.Text = dr["Latitude"] == DBNull.Value ? "-" : dr["Latitude"].ToString();
+                            lblLongitude.Text = dr["Longitude"] == DBNull.Value ? "-" : dr["Longitude"].ToString();
+                            lblSentTime.Text = Convert.ToDateTime(dr["SentAt"]).ToString("yyyy-MM-dd hh:mm tt");
 
-                                if (orgLat == 0 || orgLng == 0 || alertLat == 0 || alertLng == 0)
-                                {
-                                    pnlDetails.Visible = false;
-                                    ShowMessage("Invalid organization or alert coordinates.");
-                                    return;
-                                }
-
-                                lblOrganizationName.Text = orgName;
-
-                                lblOrganizationLocation.Text = string.IsNullOrWhiteSpace(orgLocation)
-                                    ? orgLat.ToString("0.000000") + ", " + orgLng.ToString("0.000000")
-                                    : orgLocation + " (" + orgLat.ToString("0.000000") + ", " + orgLng.ToString("0.000000") + ")";
-
-                                if (string.IsNullOrWhiteSpace(raisedBy))
-                                {
-                                    raisedBy = raisedUsername;
-                                }
-
-                                lblRaisedBy.Text = raisedBy;
-                                lblAlertLocation.Text = alertLat.ToString("0.000000") + ", " + alertLng.ToString("0.000000");
-                                lblSentTime.Text = Convert.ToDateTime(dr["SentAt"]).ToString("yyyy-MM-dd hh:mm tt");
-
-                                hfOrgLat.Value = orgLat.ToString(CultureInfo.InvariantCulture);
-                                hfOrgLng.Value = orgLng.ToString(CultureInfo.InvariantCulture);
-                                hfAlertLat.Value = alertLat.ToString(CultureInfo.InvariantCulture);
-                                hfAlertLng.Value = alertLng.ToString(CultureInfo.InvariantCulture);
-
-                                // Fallback straight-line distance shown first; JS will replace with road distance.
-                                double fallbackDistance = GetDistanceKm(
-                                    Convert.ToDouble(orgLat),
-                                    Convert.ToDouble(orgLng),
-                                    Convert.ToDouble(alertLat),
-                                    Convert.ToDouble(alertLng)
-                                );
-
-                                lblDistance.Text = fallbackDistance.ToString("0.00") + " km (air distance)";
-                                pnlDetails.Visible = true;
-                            }
-                            else
-                            {
-                                pnlDetails.Visible = false;
-                                ShowMessage("Notification details not found.");
-                                return;
-                            }
+                            pnlModal.Visible = true;
                         }
                     }
                 }
-
-                MarkNotificationAsSeen(notificationId);
-                LoadNotifications();
-
-                ScriptManager.RegisterStartupScript(
-                    this,
-                    this.GetType(),
-                    "loadMap",
-                    "setTimeout(function(){ loadNotificationMap(); }, 300);",
-                    true
-                );
             }
             catch (Exception ex)
             {
-                ShowMessage("Error loading notification details: " + ex.Message.Replace("'", ""));
+                Response.Write("<script>alert('Error loading details: " + ex.Message.Replace("'", "") + "');</script>");
             }
         }
 
-        private void MarkNotificationAsSeen(int notificationId)
+        protected void btnAccept_Click(object sender, EventArgs e)
         {
-            using (SqlConnection con = dbObj.GetConnection())
+            try
             {
-                string query = @"
-                    UPDATE AlertNotifications
-                    SET IsSeen = 1
-                    WHERE NotificationId = @NotificationId";
+                int orgUserId = Convert.ToInt32(Session["UserId"]);
+                int notificationId = Convert.ToInt32(hfNotificationId.Value);
+                int alertId = Convert.ToInt32(hfAlertId.Value);
 
-                using (SqlCommand cmd = new SqlCommand(query, con))
+                using (SqlConnection con = dbObj.GetConnection())
                 {
-                    cmd.Parameters.AddWithValue("@NotificationId", notificationId);
                     con.Open();
-                    cmd.ExecuteNonQuery();
+                    SqlTransaction tran = con.BeginTransaction();
+
+                    try
+                    {
+                        string acceptQuery = @"
+                            UPDATE AlertNotifications
+                            SET NotificationStatus = 'Accepted',
+                                ActionAt = GETDATE(),
+                                AssignedAt = GETDATE(),
+                                IsSeen = 1
+                            WHERE NotificationId = @NotificationId
+                              AND OrganizationUserId = @OrganizationUserId
+                              AND ISNULL(NotificationStatus, 'Pending') = 'Pending'";
+
+                        using (SqlCommand cmd = new SqlCommand(acceptQuery, con, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@NotificationId", notificationId);
+                            cmd.Parameters.AddWithValue("@OrganizationUserId", orgUserId);
+                            int affected = cmd.ExecuteNonQuery();
+
+                            if (affected == 0)
+                                throw new Exception("This notification is already handled.");
+                        }
+
+                        string cancelOthersQuery = @"
+                            UPDATE AlertNotifications
+                            SET NotificationStatus = 'Cancelled',
+                                ActionAt = GETDATE()
+                            WHERE AlertId = @AlertId
+                              AND NotificationId <> @NotificationId
+                              AND ISNULL(NotificationStatus, 'Pending') = 'Pending'";
+
+                        using (SqlCommand cmd = new SqlCommand(cancelOthersQuery, con, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@AlertId", alertId);
+                            cmd.Parameters.AddWithValue("@NotificationId", notificationId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string alertUpdateQuery = @"
+                            UPDATE Alerts
+                            SET AlertStatus = 'Assigned'
+                            WHERE AlertId = @AlertId";
+
+                        using (SqlCommand cmd = new SqlCommand(alertUpdateQuery, con, tran))
+                        {
+                            cmd.Parameters.AddWithValue("@AlertId", alertId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        tran.Commit();
+
+                        Response.Redirect("~/AlertMap.aspx?alertId=" + alertId + "&notificationId=" + notificationId);
+                    }
+                    catch
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                pnlModal.Visible = true;
+                Response.Write("<script>alert('Accept failed: " + ex.Message.Replace("'", "") + "');</script>");
+            }
         }
 
-        private double GetDistanceKm(double lat1, double lng1, double lat2, double lng2)
+        protected void btnReject_Click(object sender, EventArgs e)
         {
-            double R = 6371.0;
-            double dLat = ToRadians(lat2 - lat1);
-            double dLng = ToRadians(lng2 - lng1);
+            try
+            {
+                int orgUserId = Convert.ToInt32(Session["UserId"]);
+                int notificationId = Convert.ToInt32(hfNotificationId.Value);
 
-            double a =
-                Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+                using (SqlConnection con = dbObj.GetConnection())
+                {
+                    string query = @"
+                        UPDATE AlertNotifications
+                        SET NotificationStatus = 'Rejected',
+                            ActionAt = GETDATE(),
+                            IsSeen = 1
+                        WHERE NotificationId = @NotificationId
+                          AND OrganizationUserId = @OrganizationUserId
+                          AND ISNULL(NotificationStatus, 'Pending') = 'Pending'";
 
-            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@NotificationId", notificationId);
+                        cmd.Parameters.AddWithValue("@OrganizationUserId", orgUserId);
 
-            return R * c;
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                pnlModal.Visible = false;
+                LoadNotifications();
+            }
+            catch (Exception ex)
+            {
+                pnlModal.Visible = true;
+                Response.Write("<script>alert('Reject failed: " + ex.Message.Replace("'", "") + "');</script>");
+            }
         }
 
-        private double ToRadians(double angle)
+        protected void btnClose_Click(object sender, EventArgs e)
         {
-            return angle * (Math.PI / 180);
-        }
-
-        private void ShowMessage(string message)
-        {
-            string safeMessage = message.Replace("'", "\\'");
-            string script = "alert('" + safeMessage + "');";
-            ClientScript.RegisterStartupScript(this.GetType(), "msg", script, true);
+            pnlModal.Visible = false;
         }
     }
 }

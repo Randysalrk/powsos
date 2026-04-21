@@ -1,406 +1,199 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Mobile.Master" AutoEventWireup="true" CodeBehind="Notifications.aspx.cs" Inherits="pow.Notifications" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="HeadContent" runat="server">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <style>
         .notify-page {
-            width: 100%;
-            max-width: 760px;
+            max-width: 380px;
             margin: 0 auto;
-            padding: 20px 16px 40px;
-            box-sizing: border-box;
+            padding: 16px 12px 30px;
             background: #efefef;
             min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .page-title {
-            font-size: 40px;
+            font-size: 28px;
             color: #d79a18;
             text-align: center;
-            margin: 12px 0 24px;
+            margin: 10px 0 18px;
             font-weight: 600;
         }
 
         .section-title {
-            font-size: 24px;
-            color: #333;
-            margin: 0 0 14px;
+            font-size: 18px;
             font-weight: 600;
-        }
-
-        .empty-box {
-            background: #fff;
-            padding: 18px;
-            border-radius: 10px;
-            color: #666;
-            border: 1px solid #ddd;
-            text-align: center;
-            font-size: 15px;
+            color: #222;
+            margin: 10px 0 14px;
         }
 
         .notify-card {
             background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 14px;
-            margin-bottom: 14px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #ddd;
         }
 
-        .notify-row {
-            margin-bottom: 8px;
+        .notify-line {
             font-size: 15px;
             color: #333;
+            margin-bottom: 10px;
             line-height: 1.5;
         }
 
-        .notify-label {
-            font-weight: 600;
-            color: #444;
-        }
-
-        .btn-view {
+        .btn-main {
             width: 100%;
-            margin-top: 10px;
-            background: #e3a52f;
+            background: #e0a52b;
+            color: #111;
             border: none;
             border-radius: 8px;
-            color: #222;
-            padding: 11px 12px;
-            font-size: 15px;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 16px;
             cursor: pointer;
-            font-weight: 600;
         }
 
-        .btn-view:hover {
-            background: #d5961f;
+        .btn-main:hover {
+            background: #d49716;
         }
 
-        .details-box {
+        .empty-box {
             background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 20px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            border: 1px dashed #bbb;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 15px;
         }
 
-        .detail-row {
-            margin-bottom: 10px;
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 360px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #d79a18;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-text {
             font-size: 15px;
             color: #333;
-            line-height: 1.6;
-            word-break: break-word;
+            margin-bottom: 10px;
+            line-height: 1.5;
         }
 
-        #map {
-            width: 100%;
-            height: 360px;
-            border-radius: 10px;
-            margin-top: 16px;
-            border: 1px solid #ccc;
-            background: #f8f8f8;
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
         }
 
-        .route-status {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #666;
-            text-align: center;
-        }
-
-        .distance-box {
-            margin-top: 14px;
-            padding: 12px;
+        .btn-accept, .btn-reject, .btn-close {
+            flex: 1;
+            border: none;
             border-radius: 8px;
-            background: #f8f3e7;
-            border: 1px solid #ecd8a1;
-            color: #444;
+            padding: 12px;
+            font-weight: 700;
             font-size: 15px;
-            font-weight: 600;
-            text-align: center;
+            cursor: pointer;
         }
 
-        @media (max-width: 768px) {
-            .notify-page {
-                max-width: 420px;
-                padding: 16px 12px 30px;
-            }
+        .btn-accept {
+            background: #28a745;
+            color: #fff;
+        }
 
-            .page-title {
-                font-size: 30px;
-            }
+        .btn-reject {
+            background: #dc3545;
+            color: #fff;
+        }
 
-            .section-title {
-                font-size: 20px;
-            }
-
-            #map {
-                height: 300px;
-            }
+        .btn-close {
+            background: #6c757d;
+            color: #fff;
+            margin-top: 10px;
+            width: 100%;
         }
     </style>
 </asp:Content>
 
-<asp:Content ID="Content2" ContentPlaceHolderID="FeaturedContent" runat="server">
-</asp:Content>
-
-<asp:Content ID="Content3" ContentPlaceHolderID="MainContent" runat="server">
+<asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
     <div class="notify-page">
         <div class="page-title">Notifications</div>
 
         <div class="section-title">Received Alerts</div>
 
-        <asp:Panel ID="pnlEmpty" runat="server" Visible="false" CssClass="empty-box">
-            No notifications found.
-        </asp:Panel>
-
         <asp:Repeater ID="rptNotifications" runat="server" OnItemCommand="rptNotifications_ItemCommand">
             <ItemTemplate>
                 <div class="notify-card">
-                    <div class="notify-row">
-                        <span class="notify-label">Alert ID:</span>
-                        <%# Eval("AlertId") %>
-                    </div>
+                    <div class="notify-line"><strong>Alert ID:</strong> <%# Eval("AlertId") %></div>
+                    <div class="notify-line"><strong>Raised By:</strong> <%# Eval("RaisedByName") %></div>
+                    <div class="notify-line"><strong>Sent Time:</strong> <%# Eval("SentAt", "{0:yyyy-MM-dd hh:mm tt}") %></div>
+                    <div class="notify-line"><strong>Status:</strong> <%# Eval("NotificationStatus") %></div>
 
-                    <div class="notify-row">
-                        <span class="notify-label">Raised By:</span>
-                        <%# Eval("RaisedByName") %>
-                    </div>
-
-                    <div class="notify-row">
-                        <span class="notify-label">Sent Time:</span>
-                        <%# Eval("SentAt", "{0:yyyy-MM-dd hh:mm tt}") %>
-                    </div>
-
-                    <div class="notify-row">
-                        <span class="notify-label">Status:</span>
-                        <%# Convert.ToBoolean(Eval("IsSeen")) ? "Seen" : "New" %>
-                    </div>
-
-                    <asp:Button ID="btnView" runat="server"
-                        Text="View Details"
-                        CssClass="btn-view"
-                        CommandName="ViewNotification"
-                        CommandArgument='<%# Eval("NotificationId") %>' />
+                    <asp:LinkButton ID="btnViewDetails" runat="server" CssClass="btn-main"
+                        CommandName="ViewDetails"
+                        CommandArgument='<%# Eval("NotificationId") %>'>
+                        View Details
+                    </asp:LinkButton>
                 </div>
             </ItemTemplate>
         </asp:Repeater>
 
-        <asp:Panel ID="pnlDetails" runat="server" Visible="false" CssClass="details-box">
-            <div class="section-title" style="margin-top:0;">Notification Details</div>
-
-            <div class="detail-row">
-                <strong>Organization:</strong>
-                <asp:Label ID="lblOrganizationName" runat="server"></asp:Label>
-            </div>
-
-            <div class="detail-row">
-                <strong>Organization Location:</strong>
-                <asp:Label ID="lblOrganizationLocation" runat="server"></asp:Label>
-            </div>
-
-            <div class="detail-row">
-                <strong>Raised By:</strong>
-                <asp:Label ID="lblRaisedBy" runat="server"></asp:Label>
-            </div>
-
-            <div class="detail-row">
-                <strong>Raised Alert Location:</strong>
-                <asp:Label ID="lblAlertLocation" runat="server"></asp:Label>
-            </div>
-
-            <div class="detail-row">
-                <strong>Sent Time:</strong>
-                <asp:Label ID="lblSentTime" runat="server"></asp:Label>
-            </div>
-
-            <asp:HiddenField ID="hfOrgLat" runat="server" />
-            <asp:HiddenField ID="hfOrgLng" runat="server" />
-            <asp:HiddenField ID="hfAlertLat" runat="server" />
-            <asp:HiddenField ID="hfAlertLng" runat="server" />
-
-            <div id="map"></div>
-
-            <div id="routeStatus" class="route-status">Loading road route...</div>
-
-            <div class="distance-box">
-                Distance: <asp:Label ID="lblDistance" runat="server"></asp:Label>
-            </div>
+        <asp:Panel ID="pnlEmpty" runat="server" Visible="false" CssClass="empty-box">
+            No notifications available.
         </asp:Panel>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Modal -->
+    <asp:Panel ID="pnlModal" runat="server" Visible="false" CssClass="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Alert Details</div>
 
-    <script>
-        var notifyMap = null;
-        var routeLayer = null;
-        var markerLayer = null;
+            <asp:HiddenField ID="hfNotificationId" runat="server" />
+            <asp:HiddenField ID="hfAlertId" runat="server" />
 
-        function getLabelElement() {
-            return document.getElementById('<%= lblDistance.ClientID %>');
-        }
+            <div class="modal-text"><strong>Alert ID:</strong> <asp:Label ID="lblAlertId" runat="server" /></div>
+            <div class="modal-text"><strong>Raised By:</strong> <asp:Label ID="lblRaisedBy" runat="server" /></div>
+            <div class="modal-text"><strong>Description:</strong> <asp:Label ID="lblDescription" runat="server" /></div>
+            <div class="modal-text"><strong>Animal Type:</strong> <asp:Label ID="lblAnimalType" runat="server" /></div>
+            <div class="modal-text"><strong>Found Location:</strong> <asp:Label ID="lblLocationText" runat="server" /></div>
+            <div class="modal-text"><strong>Latitude:</strong> <asp:Label ID="lblLatitude" runat="server" /></div>
+            <div class="modal-text"><strong>Longitude:</strong> <asp:Label ID="lblLongitude" runat="server" /></div>
+            <div class="modal-text"><strong>Sent Time:</strong> <asp:Label ID="lblSentTime" runat="server" /></div>
 
-        function getRouteStatusElement() {
-            return document.getElementById('routeStatus');
-        }
+            <div class="modal-actions">
+                <asp:Button ID="btnAccept" runat="server" Text="Accept" CssClass="btn-accept" OnClick="btnAccept_Click" />
+                <asp:Button ID="btnReject" runat="server" Text="Reject" CssClass="btn-reject" OnClick="btnReject_Click" />
+            </div>
 
-        function clearMap() {
-            if (notifyMap !== null) {
-                notifyMap.remove();
-                notifyMap = null;
-            }
-            routeLayer = null;
-            markerLayer = null;
-        }
-
-        function formatKm(km) {
-            return km.toFixed(2) + ' km';
-        }
-
-        function loadNotificationMap() {
-            var orgLatField = document.getElementById('<%= hfOrgLat.ClientID %>');
-            var orgLngField = document.getElementById('<%= hfOrgLng.ClientID %>');
-            var alertLatField = document.getElementById('<%= hfAlertLat.ClientID %>');
-            var alertLngField = document.getElementById('<%= hfAlertLng.ClientID %>');
-
-            if (!orgLatField || !orgLngField || !alertLatField || !alertLngField) {
-                return;
-            }
-
-            var orgLat = parseFloat(orgLatField.value);
-            var orgLng = parseFloat(orgLngField.value);
-            var alertLat = parseFloat(alertLatField.value);
-            var alertLng = parseFloat(alertLngField.value);
-
-            if (isNaN(orgLat) || isNaN(orgLng) || isNaN(alertLat) || isNaN(alertLng)) {
-                return;
-            }
-
-            var mapContainer = document.getElementById('map');
-            if (!mapContainer) {
-                return;
-            }
-
-            clearMap();
-
-            notifyMap = L.map('map', {
-                zoomControl: true
-            });
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(notifyMap);
-
-            var orgPoint = [orgLat, orgLng];
-            var alertPoint = [alertLat, alertLng];
-
-            markerLayer = L.layerGroup().addTo(notifyMap);
-
-            L.marker(orgPoint)
-                .addTo(markerLayer)
-                .bindPopup('Organization Location');
-
-            L.marker(alertPoint)
-                .addTo(markerLayer)
-                .bindPopup('Raised Alert Location');
-
-            notifyMap.setView(orgPoint, 11);
-
-            loadRoadRoute(orgLat, orgLng, alertLat, alertLng);
-        }
-
-        function loadRoadRoute(orgLat, orgLng, alertLat, alertLng) {
-            var routeStatus = getRouteStatusElement();
-            var distanceLabel = getLabelElement();
-
-            if (routeStatus) {
-                routeStatus.innerHTML = 'Loading road route...';
-            }
-
-            // OSRM expects longitude,latitude order in URL
-            var url = 'https://router.project-osrm.org/route/v1/driving/'
-                + orgLng + ',' + orgLat + ';' + alertLng + ',' + alertLat
-                + '?overview=full&geometries=geojson&steps=false';
-
-            fetch(url)
-                .then(function (response) {
-                    if (!response.ok) {
-                        throw new Error('Routing service HTTP error: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(function (data) {
-                    if (!data || !data.routes || data.routes.length === 0) {
-                        throw new Error('No route found.');
-                    }
-
-                    var route = data.routes[0];
-                    var coords = route.geometry.coordinates;
-
-                    var latLngs = coords.map(function (c) {
-                        return [c[1], c[0]];
-                    });
-
-                    if (routeLayer) {
-                        notifyMap.removeLayer(routeLayer);
-                    }
-
-                    routeLayer = L.polyline(latLngs, {
-                        color: '#1565c0',
-                        weight: 5,
-                        opacity: 0.85
-                    }).addTo(notifyMap);
-
-                    notifyMap.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
-
-                    var roadDistanceKm = route.distance / 1000.0;
-                    var durationMinutes = route.duration / 60.0;
-
-                    if (distanceLabel) {
-                        distanceLabel.innerHTML = formatKm(roadDistanceKm) + ' (road distance)';
-                    }
-
-                    if (routeStatus) {
-                        routeStatus.innerHTML = 'Estimated route distance loaded. Approx. travel time: ' + Math.round(durationMinutes) + ' min';
-                    }
-
-                    setTimeout(function () {
-                        if (notifyMap) {
-                            notifyMap.invalidateSize();
-                        }
-                    }, 200);
-                })
-                .catch(function () {
-                    // fallback: direct line if route service fails
-                    var orgPoint = [orgLat, orgLng];
-                    var alertPoint = [alertLat, alertLng];
-
-                    if (routeLayer) {
-                        notifyMap.removeLayer(routeLayer);
-                    }
-
-                    routeLayer = L.polyline([orgPoint, alertPoint], {
-                        color: 'red',
-                        weight: 4,
-                        dashArray: '8,8',
-                        opacity: 0.8
-                    }).addTo(notifyMap);
-
-                    notifyMap.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
-
-                    if (routeStatus) {
-                        routeStatus.innerHTML = 'Road route could not be loaded. Showing fallback straight line.';
-                    }
-
-                    setTimeout(function () {
-                        if (notifyMap) {
-                            notifyMap.invalidateSize();
-                        }
-                    }, 200);
-                });
-        }
-    </script>
+            <asp:Button ID="btnClose" runat="server" Text="Close" CssClass="btn-close" OnClick="btnClose_Click" />
+        </div>
+    </asp:Panel>
 </asp:Content>
