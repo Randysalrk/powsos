@@ -6,6 +6,9 @@
     <title>PawSoS - Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- Font Awesome for eye icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         * {
             box-sizing: border-box;
@@ -74,6 +77,30 @@
             color: #8c8c8c;
         }
 
+        /* PASSWORD WRAPPER */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-input {
+            padding-right: 40px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .toggle-password:hover {
+            color: #000;
+        }
+
         .forgot-wrap {
             text-align: left;
             margin: 6px 0 18px 0;
@@ -97,9 +124,7 @@
             background: #f0b23a;
             color: #1f1f1f;
             font-size: 19px;
-            font-weight: 400;
             cursor: pointer;
-            transition: 0.2s ease;
         }
 
         .login-btn:hover {
@@ -133,19 +158,9 @@
             font-size: 13px;
             color: #555;
         }
-
-        @media (max-width: 480px) {
-            .brand {
-                font-size: 28px;
-                margin-bottom: 38px;
-            }
-
-            .login-title {
-                font-size: 30px;
-            }
-        }
     </style>
 </head>
+
 <body>
     <form id="form1" runat="server">
         <div class="login-page">
@@ -160,8 +175,17 @@
                 <asp:TextBox ID="txtEmail" runat="server" CssClass="input-box"
                     placeholder="Username or Email"></asp:TextBox>
 
-                <asp:TextBox ID="txtPassword" runat="server" CssClass="input-box"
-                    TextMode="Password" placeholder="Password"></asp:TextBox>
+                <!-- PASSWORD WITH EYE -->
+                <div class="password-wrapper">
+                    <asp:TextBox ID="txtPassword" runat="server"
+                        CssClass="input-box password-input"
+                        TextMode="Password"
+                        placeholder="Password"></asp:TextBox>
+
+                    <span class="toggle-password" onclick="togglePassword()">
+                        <i class="fa fa-eye"></i>
+                    </span>
+                </div>
 
                 <div class="forgot-wrap">
                     <a href="#" class="forgot-link">Forgot password?</a>
@@ -187,5 +211,23 @@
             </div>
         </div>
     </form>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        function togglePassword() {
+            var passwordBox = document.getElementById('<%= txtPassword.ClientID %>');
+            var icon = document.querySelector(".toggle-password i");
+
+            if (passwordBox.type === "password") {
+                passwordBox.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                passwordBox.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+    </script>
 </body>
 </html>

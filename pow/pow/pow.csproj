@@ -154,6 +154,8 @@
     <Content Include="Raisealert.aspx" />
     <Content Include="Notifications.aspx" />
     <Content Include="About.aspx" />
+    <Content Include="Organizationsignup.aspx" />
+    <Content Include="orgsignup.aspx" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -272,6 +274,20 @@
     </Compile>
     <Compile Include="About.aspx.designer.cs">
       <DependentUpon>About.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Organizationsignup.aspx.cs">
+      <DependentUpon>Organizationsignup.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Organizationsignup.aspx.designer.cs">
+      <DependentUpon>Organizationsignup.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="orgsignup.aspx.cs">
+      <DependentUpon>orgsignup.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="orgsignup.aspx.designer.cs">
+      <DependentUpon>orgsignup.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
